@@ -90,3 +90,57 @@ def get_user_history(user_id: int) -> list[tuple[int, float]]:
         (user_id,),
     )
     return [(row["movie_id"], row["rating"]) for row in cur.fetchall()]
+
+
+def get_user(user_id: int) -> dict | None:
+    conn = _get_conn()
+    cur = conn.execute(
+        "SELECT id, username, display_name, created_at FROM users WHERE id = ?",
+        (user_id,),
+    )
+    row = cur.fetchone()
+    return dict(row) if row else None
+
+
+def update_user_display_name(user_id: int, display_name: str) -> bool:
+    conn = _get_conn()
+    with _lock:
+        cur = conn.execute(
+            "UPDATE users SET display_name = ? WHERE id = ?",
+            (display_name, user_id),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+
+
+def get_user_rating_count(user_id: int) -> int:
+    conn = _get_conn()
+    cur = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM ratings WHERE user_id = ?",
+        (user_id,),
+    )
+    row = cur.fetchone()
+    return row["cnt"] if row else 0
+
+
+def ensure_user_exists(user_id: int):
+    conn = _get_conn()
+    conn.execute(
+        "INSERT OR IGNORE INTO users (id, username, display_name) VALUES (?, ?, ?)",
+        (user_id, f"user_{user_id}", f"User {user_id}"),
+    )
+    conn.commit()
+
+
+def update_user_username(user_id: int, username: str) -> dict:
+    conn = _get_conn()
+    with _lock:
+        try:
+            cur = conn.execute(
+                "UPDATE users SET username = ? WHERE id = ?",
+                (username, user_id),
+            )
+            conn.commit()
+            return {"ok": cur.rowcount > 0, "error": ""}
+        except sqlite3.IntegrityError:
+            return {"ok": False, "error": "Username already taken"}

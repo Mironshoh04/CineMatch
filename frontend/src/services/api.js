@@ -37,3 +37,18 @@ export function submitRating(userId, movieId, rating) {
     body: JSON.stringify({ user_id: userId, movie_id: movieId, rating }),
   })
 }
+
+export function getUser(userId) {
+  return request(`/users/${userId}`)
+}
+
+export function updateUser(userId, data) {
+  return request(`/users/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export function getUserRatings(userId) {
+  return request(`/users/${userId}/ratings`)
+}

@@ -1,4 +1,4 @@
-from ..core.model_loader import get_id_mappings
+from ..core.model_loader import get_id_mappings, get_movie_meta, get_movie_poster_url
 from .database_service import record_rating as db_record_rating
 from .database_service import get_user_ratings as db_get_user_ratings
 
@@ -13,3 +13,20 @@ def record_rating(user_id: int, movie_id: int, rating: float):
 
 def get_user_ratings(user_id: int) -> list[dict]:
     return db_get_user_ratings(user_id)
+
+
+def get_user_ratings_with_movies(user_id: int) -> list[dict]:
+    ratings = db_get_user_ratings(user_id)
+    meta = get_movie_meta()
+    results = []
+    for r in ratings:
+        movie_meta = meta.get(r["movie_id"], {})
+        results.append({
+            "movie_id": r["movie_id"],
+            "title": movie_meta.get("title", "Unknown"),
+            "genres": movie_meta.get("genres", ""),
+            "poster_url": get_movie_poster_url(r["movie_id"]),
+            "rating": r["rating"],
+            "created_at": r["created_at"],
+        })
+    return results
