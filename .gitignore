@@ -1,4 +1,8 @@
 .venv/
-data/
+*.csv
 .env
 frontend/node_modules/
+*.db
+*.pkl
+*.db-wal
+*.db-shm
