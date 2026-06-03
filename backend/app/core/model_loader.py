@@ -1,3 +1,4 @@
+import json
 import pickle
 from pathlib import Path
 
@@ -6,10 +7,13 @@ import pandas as pd
 from .config import settings
 
 
+TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342"
+
 _model = None
 _movie_meta = None
 _movie_id_to_idx = None
 _idx_to_movie_id = None
+_movie_posters = None
 
 
 def load_model():
@@ -56,3 +60,24 @@ def get_id_mappings():
     if _movie_id_to_idx is None:
         load_model()
     return _movie_id_to_idx, _idx_to_movie_id
+
+
+def load_posters():
+    global _movie_posters
+    if _movie_posters is not None:
+        return
+    posters_path = Path(settings.processed_dir) / "posters.json"
+    if posters_path.exists():
+        with open(posters_path) as f:
+            _movie_posters = json.load(f)
+    else:
+        _movie_posters = {}
+
+
+def get_movie_poster_url(movie_id: int) -> str:
+    if _movie_posters is None:
+        load_posters()
+    path = _movie_posters.get(str(movie_id))
+    if path:
+        return f"{TMDB_IMAGE_BASE}{path}"
+    return ""

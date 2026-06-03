@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Optional
 
 from ..core.config import settings
-from ..core.model_loader import get_id_mappings
+from ..core.model_loader import get_id_mappings, get_movie_poster_url
 
 _movies_df: Optional[pd.DataFrame] = None
 
@@ -26,8 +26,11 @@ def get_all_movies(page: int = 1, per_page: int = 50):
     end = start + per_page
     page_data = _movies_df.iloc[start:end].copy()
     page_data.rename(columns={"movieId": "movie_id"}, inplace=True)
+    movies = page_data.to_dict(orient="records")
+    for m in movies:
+        m["poster_url"] = get_movie_poster_url(m["movie_id"])
     return {
-        "movies": page_data.to_dict(orient="records"),
+        "movies": movies,
         "total": len(_movies_df),
     }
 
@@ -37,7 +40,10 @@ def search_movies(query: str, limit: int = 20):
     mask = _movies_df["title"].str.contains(query, case=False, na=False)
     results = _movies_df[mask].head(limit).copy()
     results.rename(columns={"movieId": "movie_id"}, inplace=True)
-    return results.to_dict(orient="records")
+    movies = results.to_dict(orient="records")
+    for m in movies:
+        m["poster_url"] = get_movie_poster_url(m["movie_id"])
+    return movies
 
 
 def get_known_movie_ids() -> set[int]:

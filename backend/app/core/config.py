@@ -7,9 +7,10 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # Paths (relative to backend/)
-    model_path: str = str(Path(__file__).parent.parent.parent.parent / "models" / "als_model_v2.pkl")
+    model_path: str = str(Path(__file__).parent.parent.parent.parent / "models" / "als_model.pkl")
     data_dir: str = str(Path(__file__).parent.parent.parent.parent / "data")
     processed_dir: str = str(Path(__file__).parent.parent.parent.parent / "data" / "processed")
+    db_path: str = str(Path(__file__).parent.parent.parent.parent / "data" / "processed" / "cinematch.db")
 
     # API
     host: str = "0.0.0.0"

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 
 from ..services.recommendation_service import recommend_for_user, similar_movies
-from ..services.rating_service import get_training_ratings
+from ..services.database_service import get_user_history
 from ..schemas.recommendation import RecommendationList, RecommendationOut
 
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
@@ -9,7 +9,7 @@ router = APIRouter(prefix="/recommendations", tags=["recommendations"])
 
 @router.get("/user/{user_id}", response_model=RecommendationList)
 def recommend(user_id: int, k: int = Query(10, ge=1, le=100)):
-    past_ratings = get_training_ratings(user_id)
+    past_ratings = get_user_history(user_id)
     recs = recommend_for_user(user_id, user_ratings=past_ratings if past_ratings else None, k=k)
     return RecommendationList(
         user_id=user_id,

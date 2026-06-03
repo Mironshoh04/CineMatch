@@ -1,0 +1,92 @@
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+from threading import Lock
+
+from ..core.config import settings
+
+_lock = Lock()
+_conn = None  # type: sqlite3.Connection | None
+
+
+def _get_conn() -> sqlite3.Connection:
+    global _conn
+    if _conn is None:
+        db_path = Path(settings.db_path)
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        _conn = sqlite3.connect(str(db_path), check_same_thread=False)
+        _conn.row_factory = sqlite3.Row
+        _conn.execute("PRAGMA journal_mode=WAL")
+        _conn.execute("PRAGMA foreign_keys=ON")
+    return _conn
+
+
+def init_db():
+    conn = _get_conn()
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            display_name TEXT DEFAULT '',
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS ratings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL REFERENCES users(id),
+            movie_id INTEGER NOT NULL,
+            rating REAL NOT NULL CHECK (rating >= 0.5 AND rating <= 5.0),
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_ratings_user ON ratings(user_id);
+        CREATE INDEX IF NOT EXISTS idx_ratings_movie ON ratings(movie_id);
+    """)
+    conn.commit()
+
+
+def get_or_create_user(username: str, display_name: str = "") -> int:
+    conn = _get_conn()
+    cur = conn.execute("SELECT id FROM users WHERE username = ?", (username,))
+    row = cur.fetchone()
+    if row:
+        return row["id"]
+    cur = conn.execute(
+        "INSERT INTO users (username, display_name) VALUES (?, ?)",
+        (username, display_name),
+    )
+    conn.commit()
+    return cur.lastrowid
+
+
+def record_rating(user_id: int, movie_id: int, rating: float):
+    conn = _get_conn()
+    with _lock:
+        conn.execute(
+            "INSERT OR IGNORE INTO users (id, username, display_name) VALUES (?, ?, ?)",
+            (user_id, f"user_{user_id}", f"User {user_id}"),
+        )
+        cur = conn.execute(
+            "INSERT INTO ratings (user_id, movie_id, rating) VALUES (?, ?, ?)",
+            (user_id, movie_id, rating),
+        )
+        conn.commit()
+        return cur.lastrowid
+
+
+def get_user_ratings(user_id: int) -> list[dict]:
+    conn = _get_conn()
+    cur = conn.execute(
+        "SELECT movie_id, rating, created_at FROM ratings WHERE user_id = ? ORDER BY created_at DESC",
+        (user_id,),
+    )
+    return [dict(row) for row in cur.fetchall()]
+
+
+def get_user_history(user_id: int) -> list[tuple[int, float]]:
+    conn = _get_conn()
+    cur = conn.execute(
+        "SELECT movie_id, rating FROM ratings WHERE user_id = ?",
+        (user_id,),
+    )
+    return [(row["movie_id"], row["rating"]) for row in cur.fetchall()]

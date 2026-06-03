@@ -10,12 +10,12 @@ export default function MovieDetail() {
   const [similar, setSimilar] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [message, setMessage] = useState('')
+  const [imgError, setImgError] = useState(false)
 
   useEffect(() => {
     getSimilarMovies(id).then(setSimilar)
-    // Load movie metadata from similar results or a separate lookup
-    // For now, store the movie from the similar list
     setMeta(null)
+    setImgError(false)
   }, [id])
 
   useEffect(() => {
@@ -25,7 +25,8 @@ export default function MovieDetail() {
   }, [similar, id])
 
   const handleRate = async (movieId, rating) => {
-    await submitRating(1, movieId, rating)
+    const userId = localStorage.getItem('cinematch_user_id') || '1'
+    await submitRating(userId, movieId, rating)
     setShowModal(false)
     setMessage('Thanks for rating!')
     setTimeout(() => setMessage(''), 3000)
@@ -34,9 +35,18 @@ export default function MovieDetail() {
   return (
     <div className="detail">
       <div className="header">
-        <div className="poster-placeholder">
-          <span>{meta?.title?.charAt(0) || '?'}</span>
-        </div>
+        {meta?.poster_url && !imgError ? (
+          <img
+            className="detail-poster"
+            src={meta.poster_url}
+            alt={meta.title}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="poster-placeholder">
+            <span>{meta?.title?.charAt(0) || '?'}</span>
+          </div>
+        )}
         <div className="meta">
           <h1>{meta?.title || 'Loading...'}</h1>
           <div className="genres">{meta?.genres?.replace(/\|/g, ' · ')}</div>

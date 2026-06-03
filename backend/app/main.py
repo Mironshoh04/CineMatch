@@ -5,11 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .core.config import settings
 from .core.model_loader import load_model
+from .services.database_service import init_db
 from .api import movies, recommendations, ratings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    init_db()
     load_model()
     yield
 

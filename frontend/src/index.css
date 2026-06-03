@@ -71,6 +71,12 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
   color: var(--text-muted);
   font-size: .8rem;
+  overflow: hidden;
+}
+.movie-card .poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .movie-card .info { padding: .75rem; }
 .movie-card .info h3 { font-size: .9rem; margin-bottom: .25rem; }
@@ -101,6 +107,13 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
+  flex-shrink: 0;
+}
+.detail .detail-poster {
+  width: 300px;
+  aspect-ratio: 2/3;
+  border-radius: var(--radius);
+  object-fit: cover;
   flex-shrink: 0;
 }
 .detail .meta { flex: 1; }
@@ -177,12 +190,33 @@ a { color: inherit; text-decoration: none; }
   padding: .75rem;
   background: var(--surface);
   border-radius: var(--radius);
+  cursor: pointer;
+  transition: background .2s;
 }
+.recommendation-item:hover { background: var(--surface-hover); }
 .recommendation-item .rank {
   width: 2rem;
   text-align: center;
   font-weight: 700;
   color: var(--text-muted);
+}
+.recommendation-item .poster-thumb {
+  width: 40px;
+  aspect-ratio: 2/3;
+  background: var(--surface-hover);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: .7rem;
+}
+.recommendation-item .poster-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .recommendation-item .title { flex: 1; }
 .recommendation-item .score { color: var(--text-muted); font-size: .85rem; }
