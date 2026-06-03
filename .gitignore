@@ -1,3 +1,4 @@
 data/
 .venv/
-notebooks/tasks
+.env
+frontend/node_modules/
