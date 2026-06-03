@@ -6,6 +6,8 @@ class MovieOut(BaseModel):
     title: str
     genres: str
     poster_url: str = ""
+    overview: str = ""
+    tagline: str = ""
 
 
 class MovieList(BaseModel):

@@ -173,6 +173,8 @@ a { color: inherit; text-decoration: none; }
 .detail .meta { flex: 1; }
 .detail .meta h1 { font-size: 2rem; margin-bottom: .5rem; }
 .detail .meta .genres { color: var(--text-muted); margin-bottom: 1.5rem; }
+.detail .meta .tagline { color: var(--text-muted); font-style: italic; margin-bottom: .75rem; }
+.detail .meta .overview { color: #ccc; font-size: .95rem; line-height: 1.6; margin-bottom: 1.5rem; }
 
 /* Buttons */
 .btn {

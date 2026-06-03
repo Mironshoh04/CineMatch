@@ -1,64 +1,17 @@
 import json
-import re
-from pathlib import Path
 
 import httpx
 
 from ..core.config import settings
 from ..core.model_loader import get_movie_meta, get_movie_poster_url
+from .embedding_service import search as semantic_search
 
 GEMINI_MODEL = "gemini-2.5-flash"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:streamGenerateContent?alt=sse"
 
-_descriptions: dict[str, dict] | None = None
-
-
-def load_descriptions():
-    global _descriptions
-    if _descriptions is not None:
-        return
-    path = Path(settings.processed_dir) / "descriptions.json"
-    if path.exists():
-        _descriptions = json.loads(path.read_text())
-    else:
-        _descriptions = {}
-
-
-def get_descriptions() -> dict[str, dict]:
-    if _descriptions is None:
-        load_descriptions()
-    return _descriptions or {}
-
 
 def search_catalog(query: str, top_n: int = 30) -> list[dict]:
-    meta = get_movie_meta()
-    descriptions = get_descriptions()
-    tokens = set(re.sub(r"[^\w\s]", "", query.lower()).split())
-
-    scored = []
-    for mid_str, movie in meta.items():
-        mid = int(mid_str)
-        text = f"{movie['title']} {movie['genres'].replace('|', ' ')}"
-        desc = descriptions.get(mid_str, {})
-        text += f" {desc.get('overview', '')} {desc.get('tagline', '')}"
-        text_lower = text.lower()
-        score = sum(1 for t in tokens if t in text_lower)
-        if score > 0:
-            scored.append((score, mid, movie, desc))
-
-    scored.sort(key=lambda x: -x[0])
-    results = []
-    for score, mid, movie, desc in scored[:top_n]:
-        results.append({
-            "movie_id": mid,
-            "title": movie["title"],
-            "genres": movie["genres"],
-            "overview": desc.get("overview", ""),
-            "tagline": desc.get("tagline", ""),
-            "poster_url": get_movie_poster_url(mid),
-            "score": score,
-        })
-    return results
+    return semantic_search(query, top_n=top_n)
 
 
 def build_prompt(query: str, movies: list[dict]) -> str:

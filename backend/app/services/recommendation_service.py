@@ -3,17 +3,20 @@ from typing import Optional
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from ..core.model_loader import get_model, get_movie_meta, get_id_mappings, get_movie_poster_url
+from ..core.model_loader import get_model, get_movie_meta, get_id_mappings, get_movie_poster_url, get_movie_description
 from .database_service import get_user_history as db_get_user_history
 
 
 def _movie_out(movie_id: int) -> dict:
     meta = get_movie_meta().get(movie_id, {})
+    desc = get_movie_description(movie_id)
     return {
         "movie_id": movie_id,
         "title": meta.get("title", "Unknown"),
         "genres": meta.get("genres", ""),
         "poster_url": get_movie_poster_url(movie_id),
+        "overview": desc["overview"],
+        "tagline": desc["tagline"],
     }
 
 

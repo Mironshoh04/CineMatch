@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Optional
 
 from ..core.config import settings
-from ..core.model_loader import get_id_mappings, get_movie_poster_url
+from ..core.model_loader import get_id_mappings, get_movie_poster_url, get_movie_description
 
 _movies_df: Optional[pd.DataFrame] = None
 
@@ -38,6 +38,9 @@ def get_all_movies(page: int = 1, per_page: int = 50, query: str = "", genre: st
     movies = page_data.to_dict(orient="records")
     for m in movies:
         m["poster_url"] = get_movie_poster_url(m["movie_id"])
+        desc = get_movie_description(m["movie_id"])
+        m["overview"] = desc["overview"]
+        m["tagline"] = desc["tagline"]
     return {
         "movies": movies,
         "total": total,
@@ -52,6 +55,9 @@ def search_movies(query: str, limit: int = 20):
     movies = results.to_dict(orient="records")
     for m in movies:
         m["poster_url"] = get_movie_poster_url(m["movie_id"])
+        desc = get_movie_description(m["movie_id"])
+        m["overview"] = desc["overview"]
+        m["tagline"] = desc["tagline"]
     return movies
 
 

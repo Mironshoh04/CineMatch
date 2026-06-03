@@ -14,6 +14,7 @@ _movie_meta = None
 _movie_id_to_idx = None
 _idx_to_movie_id = None
 _movie_posters = None
+_movie_descriptions = None
 
 
 def load_model():
@@ -81,3 +82,31 @@ def get_movie_poster_url(movie_id: int) -> str:
     if path:
         return f"{TMDB_IMAGE_BASE}{path}"
     return ""
+
+
+def load_descriptions():
+    global _movie_descriptions
+    if _movie_descriptions is not None:
+        return
+    path = Path(settings.processed_dir) / "descriptions.json"
+    if path.exists():
+        with open(path) as f:
+            _movie_descriptions = json.load(f)
+    else:
+        _movie_descriptions = {}
+
+
+def get_movie_description(movie_id: int) -> dict:
+    if _movie_descriptions is None:
+        load_descriptions()
+    entry = _movie_descriptions.get(str(movie_id), {})
+    return {
+        "overview": entry.get("overview", ""),
+        "tagline": entry.get("tagline", ""),
+    }
+
+
+def get_all_descriptions() -> dict[str, dict]:
+    if _movie_descriptions is None:
+        load_descriptions()
+    return _movie_descriptions or {}

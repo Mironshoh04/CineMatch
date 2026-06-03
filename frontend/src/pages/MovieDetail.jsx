@@ -64,6 +64,8 @@ export default function MovieDetail() {
         <div className="meta">
           <h1>{meta?.title || 'Loading...'}</h1>
           <div className="genres">{meta?.genres?.replace(/\|/g, ' · ')}</div>
+          {meta?.tagline && <p className="tagline">"{meta.tagline}"</p>}
+          {meta?.overview && <p className="overview">{meta.overview}</p>}
           <div className="detail-actions">
             <button className="btn btn-primary" onClick={() => setShowModal(true)}>Rate</button>
             <button className="btn btn-outline" onClick={() => shareMovie(meta)}>Share</button>
