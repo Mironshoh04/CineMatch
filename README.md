@@ -15,6 +15,7 @@ CineMatch is a Netflix-style movie recommendation engine built on the **MovieLen
 - [API Endpoints](#api-endpoints)
 - [Deployment](#deployment)
 - [Tech Stack](#tech-stack)
+- [Data Science Report](docs/data-science-report.md)
 
 ---
 
@@ -238,6 +239,12 @@ Both fetch scripts support `--retry-failed` to retry only null/empty entries.
 ```
 
 Returns a streaming plain-text response.
+
+---
+
+## Deployment
+
+For a detailed analysis of the dataset, model, evaluation, and data pipeline, see the [Data Science Report](docs/data-science-report.md).
 
 ---
 
