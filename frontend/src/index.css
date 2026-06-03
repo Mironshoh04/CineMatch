@@ -42,6 +42,46 @@ a { color: inherit; text-decoration: none; }
 .navbar nav a:hover, .navbar nav a.active { color: var(--text); }
 .main { padding: 1rem 2rem; }
 
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+.search-input {
+  flex: 1;
+  max-width: 400px;
+  padding: .6rem 1rem;
+  border: 1px solid var(--surface-hover);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: .9rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.search-input:focus {
+  border-color: var(--primary);
+}
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+.genre-select {
+  padding: .6rem 1rem;
+  border: 1px solid var(--surface-hover);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: .9rem;
+  outline: none;
+  cursor: pointer;
+  min-width: 150px;
+}
+.genre-select:focus {
+  border-color: var(--primary);
+}
+
 /* Movie Grid */
 .movie-grid {
   display: grid;

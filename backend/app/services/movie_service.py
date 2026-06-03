@@ -20,18 +20,27 @@ def _load_movies():
     _movies_df = raw
 
 
-def get_all_movies(page: int = 1, per_page: int = 50):
+def get_all_movies(page: int = 1, per_page: int = 50, query: str = "", genre: str = ""):
     _load_movies()
+    df = _movies_df.copy()
+
+    if query:
+        df = df[df["title"].str.contains(query, case=False, na=False)]
+
+    if genre:
+        df = df[df["genres"].str.contains(genre, case=False, na=False)]
+
+    total = len(df)
     start = (page - 1) * per_page
     end = start + per_page
-    page_data = _movies_df.iloc[start:end].copy()
+    page_data = df.iloc[start:end].copy()
     page_data.rename(columns={"movieId": "movie_id"}, inplace=True)
     movies = page_data.to_dict(orient="records")
     for m in movies:
         m["poster_url"] = get_movie_poster_url(m["movie_id"])
     return {
         "movies": movies,
-        "total": len(_movies_df),
+        "total": total,
     }
 
 
@@ -44,6 +53,17 @@ def search_movies(query: str, limit: int = 20):
     for m in movies:
         m["poster_url"] = get_movie_poster_url(m["movie_id"])
     return movies
+
+
+def get_genres() -> list[str]:
+    _load_movies()
+    all_genres = set()
+    for g in _movies_df["genres"].dropna():
+        for part in g.split("|"):
+            part = part.strip()
+            if part:
+                all_genres.add(part)
+    return sorted(all_genres)
 
 
 def get_known_movie_ids() -> set[int]:

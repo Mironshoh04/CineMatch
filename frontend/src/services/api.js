@@ -9,12 +9,18 @@ async function request(path, options = {}) {
   return res.json()
 }
 
-export function getMovies(page = 1, perPage = 50) {
-  return request(`/movies?page=${page}&per_page=${perPage}`)
+export function getMovies(page = 1, perPage = 50, params = {}) {
+  const q = params.q ? `&q=${encodeURIComponent(params.q)}` : ''
+  const genre = params.genre ? `&genre=${encodeURIComponent(params.genre)}` : ''
+  return request(`/movies?page=${page}&per_page=${perPage}${q}${genre}`)
 }
 
 export function searchMovies(query) {
   return request(`/movies/search?q=${encodeURIComponent(query)}`)
+}
+
+export function getGenres() {
+  return request('/movies/genres')
 }
 
 export function getRecommendations(userId, k = 10) {
