@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
 from .core.model_loader import load_model
 from .services.database_service import init_db
-from .api import movies, recommendations, ratings, users
+from .api import movies, recommendations, ratings, users, watchlists, ai
 
 
 @asynccontextmanager
@@ -33,6 +33,8 @@ app.include_router(movies.router)
 app.include_router(recommendations.router)
 app.include_router(ratings.router)
 app.include_router(users.router)
+app.include_router(watchlists.router)
+app.include_router(ai.router)
 
 
 @app.get("/health")

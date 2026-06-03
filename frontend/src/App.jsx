@@ -3,6 +3,9 @@ import Home from './pages/Home'
 import MovieDetail from './pages/MovieDetail'
 import Recommendations from './pages/Recommendations'
 import Profile from './pages/Profile'
+import Watchlists from './pages/Watchlists'
+import GroupMode from './pages/GroupMode'
+import ChatModal from './components/ChatModal'
 
 function getUserId() {
   let id = localStorage.getItem('cinematch_user_id')
@@ -23,6 +26,8 @@ export default function App() {
         <nav>
           <Link to="/">Browse</Link>
           <Link to="/recommendations">For You</Link>
+          <Link to="/watchlists">Watchlists</Link>
+          <Link to="/group">Group</Link>
         </nav>
         <div className="navbar-right">
           <Link to="/profile" className="user-badge">User {userId.slice(-6)}</Link>
@@ -34,8 +39,11 @@ export default function App() {
           <Route path="/movie/:id" element={<MovieDetail />} />
           <Route path="/recommendations" element={<Recommendations />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/watchlists" element={<Watchlists />} />
+          <Route path="/group" element={<GroupMode />} />
         </Routes>
       </main>
+      <ChatModal />
     </div>
   )
 }

@@ -41,6 +41,24 @@ def init_db():
 
         CREATE INDEX IF NOT EXISTS idx_ratings_user ON ratings(user_id);
         CREATE INDEX IF NOT EXISTS idx_ratings_movie ON ratings(movie_id);
+
+        CREATE TABLE IF NOT EXISTS watchlists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL REFERENCES users(id),
+            name TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS watchlist_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            watchlist_id INTEGER NOT NULL REFERENCES watchlists(id) ON DELETE CASCADE,
+            movie_id INTEGER NOT NULL,
+            added_at TEXT DEFAULT (datetime('now')),
+            UNIQUE(watchlist_id, movie_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_watchlists_user ON watchlists(user_id);
+        CREATE INDEX IF NOT EXISTS idx_watchlist_items_wl ON watchlist_items(watchlist_id);
     """)
     conn.commit()
 
@@ -144,3 +162,66 @@ def update_user_username(user_id: int, username: str) -> dict:
             return {"ok": cur.rowcount > 0, "error": ""}
         except sqlite3.IntegrityError:
             return {"ok": False, "error": "Username already taken"}
+
+
+def create_watchlist(user_id: int, name: str) -> int:
+    conn = _get_conn()
+    with _lock:
+        cur = conn.execute(
+            "INSERT INTO watchlists (user_id, name) VALUES (?, ?)",
+            (user_id, name),
+        )
+        conn.commit()
+        return cur.lastrowid
+
+
+def get_user_watchlists(user_id: int) -> list[dict]:
+    conn = _get_conn()
+    cur = conn.execute("""
+        SELECT w.id, w.user_id, w.name, w.created_at,
+               (SELECT COUNT(*) FROM watchlist_items WHERE watchlist_id = w.id) AS item_count
+        FROM watchlists w WHERE w.user_id = ? ORDER BY w.created_at DESC
+    """, (user_id,))
+    return [dict(row) for row in cur.fetchall()]
+
+
+def delete_watchlist(watchlist_id: int):
+    conn = _get_conn()
+    with _lock:
+        conn.execute("DELETE FROM watchlist_items WHERE watchlist_id = ?", (watchlist_id,))
+        conn.execute("DELETE FROM watchlists WHERE id = ?", (watchlist_id,))
+        conn.commit()
+
+
+def add_to_watchlist(watchlist_id: int, movie_id: int) -> dict:
+    conn = _get_conn()
+    with _lock:
+        try:
+            conn.execute(
+                "INSERT INTO watchlist_items (watchlist_id, movie_id) VALUES (?, ?)",
+                (watchlist_id, movie_id),
+            )
+            conn.commit()
+            return {"ok": True, "error": ""}
+        except sqlite3.IntegrityError:
+            conn.commit()
+            return {"ok": False, "error": "Movie already in watchlist"}
+
+
+def remove_from_watchlist(watchlist_id: int, movie_id: int):
+    conn = _get_conn()
+    with _lock:
+        conn.execute(
+            "DELETE FROM watchlist_items WHERE watchlist_id = ? AND movie_id = ?",
+            (watchlist_id, movie_id),
+        )
+        conn.commit()
+
+
+def get_watchlist_items(watchlist_id: int) -> list[dict]:
+    conn = _get_conn()
+    cur = conn.execute(
+        "SELECT movie_id, added_at FROM watchlist_items WHERE watchlist_id = ? ORDER BY added_at DESC",
+        (watchlist_id,),
+    )
+    return [dict(row) for row in cur.fetchall()]

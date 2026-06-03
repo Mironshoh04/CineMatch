@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # Recommender
     top_k: int = 20
 
+    # AI
+    gemini_api_key: str = ""
+
     class Config:
         env_file = ".env"
 

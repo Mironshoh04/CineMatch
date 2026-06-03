@@ -1,8 +1,15 @@
 from fastapi import APIRouter, Query
+from pydantic import BaseModel
 
-from ..services.recommendation_service import recommend_for_user, similar_movies
+from ..services.recommendation_service import recommend_for_user, similar_movies, recommend_for_group
 from ..services.database_service import get_user_history
 from ..schemas.recommendation import RecommendationList, RecommendationOut
+
+
+class GroupRecommendationIn(BaseModel):
+    user_ids: list[int]
+    k: int = 10
+
 
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
 
@@ -30,3 +37,12 @@ def cold_start(genres: str = Query("", description="Comma-separated genres")):
 def similar(movie_id: int, n: int = Query(10, ge=1, le=50)):
     results = similar_movies(movie_id, n=n)
     return [RecommendationOut(**r) for r in results]
+
+
+@router.post("/group", response_model=RecommendationList)
+def group_recommend(body: GroupRecommendationIn):
+    recs = recommend_for_group(body.user_ids, k=body.k)
+    return RecommendationList(
+        user_id=0,
+        recommendations=[RecommendationOut(**r) for r in recs],
+    )

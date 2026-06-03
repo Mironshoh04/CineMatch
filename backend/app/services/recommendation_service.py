@@ -4,6 +4,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from ..core.model_loader import get_model, get_movie_meta, get_id_mappings, get_movie_poster_url
+from .database_service import get_user_history as db_get_user_history
 
 
 def _movie_out(movie_id: int) -> dict:
@@ -84,3 +85,17 @@ def similar_movies(movie_id: int, n: int = 10):
         })
 
     return results
+
+
+def recommend_for_group(user_ids: list[int], k: int = 10):
+    all_ratings = {}
+    for uid in user_ids:
+        history = db_get_user_history(uid)
+        for mid, rating in history:
+            if mid in all_ratings:
+                all_ratings[mid].append(rating)
+            else:
+                all_ratings[mid] = [rating]
+
+    merged = [(mid, float(np.mean(vals))) for mid, vals in all_ratings.items()]
+    return recommend_for_user(user_ids[0], user_ratings=merged if merged else None, k=k)
