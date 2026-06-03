@@ -1,4 +1,4 @@
-data/
 .venv/
+data/
 .env
 frontend/node_modules/
