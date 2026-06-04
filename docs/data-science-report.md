@@ -46,18 +46,56 @@ All ratings sorted by timestamp
 
 This simulates real-world deployment: predict what a user will watch *next* based on what they've watched *before*.
 
-### Data Flow
+### Full Workflow
 
 ```mermaid
-flowchart LR
-    A[Raw CSVs] --> B[Filter sparse users/movies]
-    B --> C[Build user-item matrix]
-    C --> D[Time-based split]
-    D --> E[Train ALS model]
-    E --> F[Evaluate on test set]
-    F --> G[Save model + metadata]
-    G --> H[Docker deployment]
+flowchart TB
+    subgraph "Data Preparation"
+        A1[MovieLens 32M] --> A2[Filter sparse rows]
+        A2 --> A3[Encode user/movie indices]
+        A3 --> A4[Time-based split 80/20]
+        A4 --> A5[Training set]
+        A4 --> A6[Test set]
+    end
+
+    subgraph "Model Training"
+        A5 --> B1[Build binary implicit matrix]
+        B1 --> B2[ALS 256 factors]
+        B2 --> B3[Leave-one-out eval]
+        B3 --> B4[MAP_at_10 = 0.3006]
+        B4 --> B5[Save als_model.pkl]
+    end
+
+    subgraph "TMDB Enrichment"
+        B5 --> C1[Fetch posters]
+        B5 --> C2[Fetch descriptions]
+        C1 --> C3[posters.json]
+        C2 --> C4[descriptions.json]
+    end
+
+    subgraph "Deployment"
+        B5 --> D1[Docker Compose]
+        C3 --> D1
+        C4 --> D1
+    end
+
+    subgraph "Live Inference"
+        D1 --> E1[User submits rating to SQLite]
+        E1 --> E2[Build user vector]
+        E2 --> E3[model.recommend]
+        E3 --> E4[Return top-K results]
+    end
+
+    subgraph "AI Chat"
+        D1 --> F1[User types query]
+        F1 --> F2[TF-IDF search 87K docs]
+        F2 --> F3[Top 30 as context]
+        F3 --> F4[Gemini 2.5 Flash]
+        F4 --> F5[Stream response to user]
+    end
 ```
+
+**Key insight**: The model is trained once offline on MovieLens 32M and never retrained. New user ratings affect recommendations at inference time (temporary user vector) but don't update the underlying item factors. This is a deliberate tradeoff — batch retraining would need to be added for real-time personalization.
 
 ---
 
